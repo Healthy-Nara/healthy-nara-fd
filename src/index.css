@@ -1,0 +1,26 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Geist+Pixel&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+
+/* @font-face {
+    font-family: 'PoppinsLocal';
+    src: url('/fonts/Poppins-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'AJ11Local';
+    src: url('/fonts/AJ%2011.ttf') format('truetype');
+    font-weight: 400;
+    font-display: swap;
+} */
+
+@theme inline {
+    --font-poppins: "Poppins", sans-serif;
+    --font-nato: "Noto Sans Myanmar", sans-serif;
+    --color-primary: #1CB89B;
+    --color-secondry: #48A0D8;
+    --color-border: #FFFFFF;
+    --color-gary: #4A494E
+}
