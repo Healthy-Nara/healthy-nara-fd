@@ -1,34 +1,20 @@
-import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom"
-import "./App.css"
-import MainLayout from "./layouts/MainLayout"
-import Login from "./components/pages/Login"
-import Home from "./components/pages/Home"
-
-function ProtectedRoute({ children }) {
-  const token = localStorage.getItem("token")
-
-  if (!token) {
-    return <Navigate to="/login" replace />
-  }
-
-  return children
-}
-
-function PublicRoute({ children }) {
-  const token = localStorage.getItem("token")
-
-  if (token) {
-    return <Navigate to="/home" replace />
-  }
-
-  return children
-}
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from "react-router-dom";
+import "./App.css";
+import MainLayout from "./layouts/MainLayout";
+import Login from "./pages/Login";
+import Home from "./pages/Home";
+import ProtectedRoute from "./guards/ProtectedRoute";
+import PublicRoute from "./guards/PublicRoute";
 
 function App() {
   const router = createBrowserRouter([
     {
       path: "/",
-      element: localStorage.getItem("token") ? (
+      element: localStorage.getItem("nara_token") ? (
         <Navigate to="/home" replace />
       ) : (
         <Navigate to="/login" replace />
@@ -56,13 +42,13 @@ function App() {
         </ProtectedRoute>
       ),
     },
-  ])
+  ]);
 
   return (
     <div>
       <RouterProvider router={router} />
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

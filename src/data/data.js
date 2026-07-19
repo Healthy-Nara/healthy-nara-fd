@@ -19,7 +19,8 @@ export const content = {
         popupImg: "/images/popup.png",
         popupTitle: "Duty စဖို့ Check In ဝင်မယ်",
         popupSub: "Assign ချထားတဲ့ Duty စတင်ဖို့အတွက် Duty Check In ဝင်ဖို့ အဆင်အသင့်ဖြစ်ပါပြီ",
-        pupupBtn: "Duty Check In ဝင်မယ်"
+        pupupBtn: "Duty Check In ဝင်မယ်",
+        dutyStarted: "Duty စတင်ပြီး"
     },
     nonDutySession: {
         popupTitle: "Assigned ချထားတဲ့ Duty မရှိသေးပါ",
