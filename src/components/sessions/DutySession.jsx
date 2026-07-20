@@ -9,6 +9,8 @@ import {
 } from "../../services/dutyService";
 import { createReport, updateReport, getReports } from "../../services/reportService";
 import { ClipboardPlus } from "lucide-react";
+import { Droplets, Bed, UtensilsCrossed, Hand, CircleAlert } from 'lucide-react';
+
 
 function DutySession({ dutyData, activeDuty }) {
   const navigate = useNavigate();
@@ -34,6 +36,15 @@ function DutySession({ dutyData, activeDuty }) {
   const [reportError, setReportError] = useState("");
   const [todayReports, setTodayReports] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [showNutritionForm, setShowNutritionForm] = useState(false)
+  const [nutritionTime, setNutritionTime] = useState("")
+  const [nutritionType, setNutritionType] = useState("")
+  const [nutritionAmount, setNutritionAmount] = useState("")
+  const [exerciseForm, setExerciseForm] = useState(false)
+  const [exerciseTime, setExerciseTime] = useState("")
+  const [exerciseType, setExerciseType] = useState("")
+  const [incidentForm, setIncidentForm] = useState(false)
+  const [incidentText, setIncidentText] = useState("")
 
   const bookingId = dutyData?.[0]?._id;
   const dutyLogId = activeDuty?._id;
@@ -101,14 +112,28 @@ function DutySession({ dutyData, activeDuty }) {
   };
 
   const handleRecordSubmit = () => {
+    setShowRecordPopup(false)
+
     if (selectedRecord === 1) {
-      setShowRecordPopup(false);
-      setShowHygieneForm(true);
+      setShowHygieneForm(true)
     } else if (selectedRecord === 2) {
-      setShowRecordPopup(false);
-      setShowSleepForm(true);
+      setShowSleepForm(true)
+    } else if (selectedRecord === 3) {
+      setShowNutritionForm(true)
+    } else if (selectedRecord === 4) {
+      setExerciseForm(true)
+    } else if (selectedRecord === 5) {
+      setIncidentForm(true)
     }
-  };
+  }
+
+  const recordIcons = {
+    1: Droplets,
+    2: Bed,
+    3: UtensilsCrossed,
+    4: Hand,
+    5: CircleAlert,
+  }
 
   const buildBasePayload = () => ({
     bookingId,
@@ -253,6 +278,121 @@ function DutySession({ dutyData, activeDuty }) {
     }
   };
 
+  const handleNutritionSubmit = async () => {
+    setReportLoading(true)
+    setReportError("")
+
+    try {
+      const today = new Date()
+      const [hours, minutes] = nutritionTime.split(":")
+
+      const feedingTime = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate(),
+        Number(hours),
+        Number(minutes)
+      ).toISOString()
+
+      const newFeedingRecord = {
+        type: nutritionType,
+        time: feedingTime,
+        amount: nutritionAmount,
+      }
+
+      const existing = findExistingReport()
+
+      if (existing) {
+        await updateReport(existing._id, {
+          ...existing,
+          feedingRecords: [...(existing.feedingRecords || []), newFeedingRecord],
+          status: "submitted",
+        })
+      } else {
+        await createReport({
+          ...buildBasePayload(),
+          feedingRecords: [newFeedingRecord],
+        })
+      }
+
+      setShowNutritionForm(false)
+      setNutritionTime("")
+      setNutritionType("")
+      setNutritionAmount("")
+      await refreshReports()
+    } catch {
+      setReportError("Nutrition report သွင်းခြင်း မအောင်မြင်ပါ")
+    } finally {
+      setReportLoading(false)
+    }
+  }
+
+  const handleExerciseSubmit = async () => {
+    setReportLoading(true)
+    setReportError("")
+
+    try {
+      const newActivity = {
+        name: exerciseType,
+        time: exerciseTime,
+      }
+
+      const existing = findExistingReport()
+
+      if (existing) {
+        await updateReport(existing._id, {
+          ...existing,
+          activities: [...(existing.activities || []), newActivity],
+          status: "submitted",
+        })
+      } else {
+        await createReport({
+          ...buildBasePayload(),
+          activities: [newActivity],
+        })
+      }
+
+      setExerciseForm(false)
+      setExerciseTime("")
+      setExerciseType("")
+      await refreshReports()
+    } catch {
+      setReportError("Exercise report သွင်းခြင်း မအောင်မြင်ပါ")
+    } finally {
+      setReportLoading(false)
+    }
+  }
+
+  const handleIncidentSubmit = async () => {
+    setReportLoading(true)
+    setReportError("")
+
+    try {
+      const existing = findExistingReport()
+
+      if (existing) {
+        await updateReport(existing._id, {
+          ...existing,
+          abnormalities: incidentText,
+          status: "submitted",
+        })
+      } else {
+        await createReport({
+          ...buildBasePayload(),
+          abnormalities: incidentText,
+        })
+      }
+
+      setIncidentForm(false)
+      setIncidentText("")
+      await refreshReports()
+    } catch {
+      setReportError("Incident report သွင်းခြင်း မအောင်မြင်ပါ")
+    } finally {
+      setReportLoading(false)
+    }
+  }
+
   const today = new Date();
   const months = [
     "January",
@@ -315,9 +455,8 @@ function DutySession({ dutyData, activeDuty }) {
           <button
             onClick={handleDutyFinish}
             disabled={finishLoading}
-            className={`p-3 text-white rounded w-[50%] flex flex-col justify-center items-start gap-3 cursor-pointer ${
-              finishLoading ? "bg-gray-400" : "bg-primary"
-            }`}
+            className={`p-3 text-white rounded w-[50%] flex flex-col justify-center items-start gap-3 cursor-pointer ${finishLoading ? "bg-gray-400" : "bg-primary"
+              }`}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -371,13 +510,12 @@ function DutySession({ dutyData, activeDuty }) {
                   selectedCategory === cat.key ? null : cat.key
                 )
               }
-              className={`px-4 py-2 rounded-full font-nato text-[12px] font-medium cursor-pointer transition-colors ${
-                selectedCategory === cat.key
-                  ? "bg-primary text-white"
-                  : cat.has
-                    ? "bg-primary/10 text-primary"
-                    : "bg-gray-100 text-gray-500"
-              }`}
+              className={`px-4 py-2 rounded-full font-nato text-[12px] font-medium cursor-pointer transition-colors ${selectedCategory === cat.key
+                ? "bg-primary text-white"
+                : cat.has
+                  ? "bg-primary/10 text-primary"
+                  : "bg-gray-100 text-gray-500"
+                }`}
             >
               {cat.label}
             </button>
@@ -546,290 +684,539 @@ function DutySession({ dutyData, activeDuty }) {
 
       {/* record popup */}
       {showRecordPopup && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-white">
-          <div className="flex justify-between items-center px-6 pt-6 pb-4">
-            <p className="font-bold font-nato text-[18px] text-gray-800">
-              {content.dutySession.recordPopup.title}
-            </p>
-            <button
-              onClick={() => setShowRecordPopup(false)}
-              className="text-gray-400 hover:text-gray-600 text-[22px] leading-none cursor-pointer"
-            >
-              ✕
-            </button>
-          </div>
+        <div className="fixed inset-0 z-50 bg-white/100 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden mt-10 mx-2 border-[1px] border-[#D9D9D9]">
+            <div className="flex justify-between items-center px-6 pt-6 pb-2">
+              <p className="font-bold font-nato text-[16px] text-secondry">
+                {content.dutySession.recordPopup.title}
+              </p>
 
-          <div className="flex-1 flex flex-col items-center justify-center px-6 pb-6">
-            <p className="font-nato text-[13px] font-medium leading-5 text-gray-500 text-center mb-8">
-              {content.dutySession.recordPopup.subtitle}
-            </p>
-
-            <div className="w-full flex flex-col gap-4">
-              {content.dutySession.recordPopup.options.map((opt) => (
-                <button
-                  key={opt.id}
-                  onClick={() => setSelectedRecord(opt.id)}
-                  className={`flex items-center gap-4 px-5 py-4 rounded-[12px] border text-left font-nato text-[14px] font-medium cursor-pointer transition-colors ${
-                    selectedRecord === opt.id
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-[#D9D9D9] text-gray-600 bg-white"
-                  }`}
-                >
-                  <div
-                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                      selectedRecord === opt.id
-                        ? "border-primary"
-                        : "border-gray-300"
-                    }`}
-                  >
-                    {selectedRecord === opt.id && (
-                      <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-                    )}
-                  </div>
-                  {opt.label}
-                </button>
-              ))}
+              <button
+                onClick={() => setShowRecordPopup(false)}
+                className="text-secondry hover:text-blue-600 text-[22px] leading-none cursor-pointer"
+              >
+                ✕
+              </button>
             </div>
 
-            <button
-              disabled={!selectedRecord}
-              onClick={handleRecordSubmit}
-              className={`w-full mt-8 py-4 rounded-[8px] font-bold font-nato text-[14px] text-white cursor-pointer transition-colors ${
-                selectedRecord ? "bg-primary" : "bg-gray-300"
-              }`}
-            >
-              {content.dutySession.recordPopup.submitBtn}
-            </button>
+            <div className="flex-1 flex flex-col items-start justify-center px-6 pb-6">
+              <p className="font-nato text-[12px] font-medium leading-5 text-[#4A494E] text-start mb-2 w-[80%]">
+                {content.dutySession.recordPopup.subtitle}
+              </p>
+
+              <div className="w-full flex flex-col gap-4">
+                {content.dutySession.recordPopup.options.map((opt) => {
+                  const Icon = recordIcons[opt.id]
+
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setSelectedRecord(opt.id)}
+                      className={`flex items-center justify-between gap-4 px-5 py-4 rounded-[12px] border text-left font-nato text-[14px] font-bold cursor-pointer transition-colors ${selectedRecord === opt.id
+                          ? "border-secondry bg-secondry text-white"
+                          : "border-secondry text-secondry bg-white"
+                        }`}
+                    >
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${selectedRecord === opt.id
+                            ? "bg-white text-secondry"
+                            : "text-secondry"
+                          }`}
+                      >
+                        {Icon && <Icon size={18} strokeWidth={2.3} />}
+                      </div>
+
+                      <span className="flex-1 text-right">
+                        {opt.label}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              <button
+                disabled={!selectedRecord}
+                onClick={handleRecordSubmit}
+                className={`w-full mt-8 py-4 rounded-[8px] font-bold font-nato text-[12px] text-white cursor-pointer transition-colors ${selectedRecord ? "bg-primary" : "bg-gray-300"
+                  }`}
+              >
+                {content.dutySession.recordPopup.submitBtn}
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {/* hygiene record form */}
       {showHygieneForm && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-white">
-          <div className="flex justify-between items-center px-6 pt-6 pb-4">
-            <p className="font-bold font-nato text-[18px] text-primary">
-              {content.dutySession.hygieneRecord.title}
-            </p>
-            <button
-              onClick={() => setShowHygieneForm(false)}
-              className="text-primary text-[22px] leading-none cursor-pointer font-bold"
-            >
-              ✕
-            </button>
-          </div>
-
-          <div className="flex-1 flex flex-col px-6 pb-6 overflow-y-auto">
-            <p className="font-nato text-[13px] font-medium leading-5 text-gray-600 mb-6">
-              {content.dutySession.hygieneRecord.subtitle}
-            </p>
-
-            <div className="flex flex-col gap-5">
-              {/* caregiver name */}
-              <div>
-                <label className="font-nato text-[13px] font-semibold text-primary mb-2 block">
-                  {content.dutySession.hygieneRecord.fields.cleaningTime}
-                </label>
-                <input
-                  type="time"
-                  value={cleaningTime}
-                  onChange={(e) => setCleaningTime(e.target.value)}
-                  className="w-full px-4 py-3 rounded-[10px] border border-[#D9D9D9] font-nato text-[13px] text-gray-700 outline-none focus:border-primary"
-                />
-              </div>
-
-              {/* time period */}
-              <div>
-                <label className="font-nato text-[13px] font-semibold text-primary mb-2 block">
-                  {content.dutySession.hygieneRecord.fields.timePeriod}
-                </label>
-                <select
-                  value={timePeriod}
-                  onChange={(e) => setTimePeriod(e.target.value)}
-                  className="w-full px-4 py-3 rounded-[10px] border border-[#D9D9D9] font-nato text-[13px] text-gray-700 outline-none focus:border-primary appearance-none bg-white"
-                >
-                  <option value="" disabled>
-                    {content.dutySession.hygieneRecord.fields.timePeriodPlaceholder}
-                  </option>
-                  <option value="bath">ရေချိုးခြင်း</option>
-                  <option value="wipe">ရေပတ်တိုက်ခြင်း</option>
-                </select>
-              </div>
-
-              {/* diaper status */}
-              <div>
-                <label className="font-nato text-[13px] font-semibold text-primary mb-2 block">
-                  {content.dutySession.hygieneRecord.fields.diaperStatus}
-                </label>
-                <input
-                  type="text"
-                  value={diaperStatus}
-                  onChange={(e) => setDiaperStatus(e.target.value)}
-                  placeholder={content.dutySession.hygieneRecord.fields.diaperPlaceholder}
-                  className="w-full px-4 py-3 rounded-[10px] border border-[#D9D9D9] font-nato text-[13px] text-gray-700 placeholder:text-gray-400 outline-none focus:border-primary"
-                />
-              </div>
-
-              {/* activity */}
-              <div>
-                <label className="font-nato text-[13px] font-semibold text-primary mb-1 block">
-                  {content.dutySession.hygieneRecord.fields.activityTitle}
-                </label>
-                <p className="font-nato text-[11px] font-medium text-gray-500 mb-3">
-                  {content.dutySession.hygieneRecord.fields.activityNote}
-                </p>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setHasActivity(true)}
-                    className={`flex-1 py-3 rounded-[10px] border font-nato text-[13px] font-medium cursor-pointer transition-colors ${
-                      hasActivity === true
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-[#D9D9D9] text-gray-500 bg-white"
-                    }`}
-                  >
-                    {content.dutySession.hygieneRecord.fields.activityYes}
-                  </button>
-                  <button
-                    onClick={() => setHasActivity(false)}
-                    className={`flex-1 py-3 rounded-[10px] border font-nato text-[13px] font-medium cursor-pointer transition-colors ${
-                      hasActivity === false
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-[#D9D9D9] text-gray-500 bg-white"
-                    }`}
-                  >
-                    {content.dutySession.hygieneRecord.fields.activityNo}
-                  </button>
-                </div>
-              </div>
+        <div className="fixed inset-0 z-50 bg-white/100 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden mt-10 mx-2 border-[1px] border-[#D9D9D9]">
+            <div className="flex justify-between items-center px-6 pt-6 pb-2">
+              <p className="font-bold font-nato text-[16px] text-secondry">
+                {content.dutySession.hygieneRecord.title}
+              </p>
+              <button
+                onClick={() => setShowHygieneForm(false)}
+                className="text-secondry hover:text-blue-600 text-[20px] leading-none cursor-pointer font-bold"
+              >
+                ✕
+              </button>
             </div>
 
-            {reportError && (
-              <p className="text-red-500 text-[11px] font-nato font-medium text-center mt-3">
-                {reportError}
+            <div className="flex-1 flex flex-col px-6 pb-6 overflow-y-auto">
+              <p className="font-nato text-[13px] font-medium leading-5 text-gray-600 mb-6 w-[95%]">
+                {content.dutySession.hygieneRecord.subtitle}
               </p>
-            )}
-            <button
-              onClick={handleHygieneSubmit}
-              disabled={reportLoading}
-              className={`w-full mt-8 py-4 rounded-[8px] font-bold font-nato text-[14px] text-white cursor-pointer transition-colors ${
-                reportLoading ? "bg-gray-400" : "bg-primary"
-              }`}
-            >
-              {reportLoading ? "သွင်းနေသည်..." : content.dutySession.hygieneRecord.submitBtn}
-            </button>
+
+              <div className="flex flex-col gap-5">
+                {/* caregiver name */}
+                <div>
+                  <label className="font-nato text-[10px] font-semibold text-secondry mb-2 block">
+                    {content.dutySession.hygieneRecord.fields.cleaningTime}
+                  </label>
+                  <input
+                    placeholder="အချိန်‌ထည့်မယ်"
+                    // type="time"
+                    value={cleaningTime}
+                    onChange={(e) => setCleaningTime(e.target.value)}
+                    className="w-full px-4 py-3 rounded-[10px] border border-[#D9D9D9] font-nato text-[13px] text-black outline-none focus:border-primary placeholder:text-[#B3B3B380]"
+                  />
+                </div>
+
+                {/* time period */}
+                <div>
+                  <label className="font-nato text-[10px] font-semibold text-secondry mb-2 block">
+                    {content.dutySession.hygieneRecord.fields.timePeriod}
+                  </label>
+                  <select
+                    value={timePeriod}
+                    onChange={(e) => setTimePeriod(e.target.value)}
+                    className="w-full px-4 py-3 rounded-[10px] border border-[#D9D9D9] font-nato text-[13px] text-black outline-none focus:border-primary appearance-none bg-white placeholder:text-[#B3B3B380]"
+                  >
+                    <option value="" disabled>
+                      {content.dutySession.hygieneRecord.fields.timePeriodPlaceholder}
+                    </option>
+                    <option value="bath">ရေချိုးခြင်း</option>
+                    <option value="wipe">ရေပတ်တိုက်ခြင်း</option>
+                  </select>
+                </div>
+
+                {/* diaper status */}
+                <div>
+                  <label className="font-nato text-[10px] font-semibold text-secondry mb-2 block">
+                    {content.dutySession.hygieneRecord.fields.diaperStatus}
+                  </label>
+                  <input
+                    type="text"
+                    value={diaperStatus}
+                    onChange={(e) => setDiaperStatus(e.target.value)}
+                    placeholder={content.dutySession.hygieneRecord.fields.diaperPlaceholder}
+                    className="w-full px-4 py-3 rounded-[10px] border border-[#D9D9D9] font-nato text-[13px] text-black placeholder:text-[#B3B3B380] outline-none focus:border-primary"
+                  />
+                </div>
+
+                {/* activity */}
+                <div>
+                  <label className="font-nato text-[10px] font-semibold text-secondry mb-2 block">
+                    {content.dutySession.hygieneRecord.fields.activityTitle}
+                  </label>
+                  <p className="font-nato text-[8px] font-medium text-gray-500 mb-3">
+                    {content.dutySession.hygieneRecord.fields.activityNote}
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setHasActivity(true)}
+                      className={`flex-1 rounded-[10px] border font-nato text-[10px] font-semibold cursor-pointer transition-colors flex items-center justify-center gap-10 ${hasActivity === true
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-[#D9D9D9] text-[#D9D9D9] bg-white"
+                        }`}
+                    >
+                      <span
+                        className={`w-[15px] h-[15px] rounded-[3px] border-[1px] ${hasActivity === true
+                          ? "border-primary bg-primary"
+                          : "border-[#D9D9D9] bg-white"
+                          }`}
+                      ></span>
+
+                      <span>{content.dutySession.hygieneRecord.fields.activityYes}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setHasActivity(false)}
+                      className={`flex-1 h-[64px] rounded-[10px] border font-nato text-[10px] font-semibold cursor-pointer transition-colors flex items-center justify-center gap-12 ${hasActivity === false
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-[#D9D9D9] text-[#D9D9D9] bg-white"
+                        }`}
+                    >
+                      <span
+                        className={`w-[15px] h-[15px] rounded-[3px] border-[1px] ${hasActivity === false
+                          ? "border-primary bg-primary"
+                          : "border-[#D9D9D9] bg-white"
+                          }`}
+                      ></span>
+
+                      <span>{content.dutySession.hygieneRecord.fields.activityNo}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {reportError && (
+                <p className="text-red-500 text-[11px] font-nato font-medium text-center mt-3">
+                  {reportError}
+                </p>
+              )}
+              <button
+                onClick={handleHygieneSubmit}
+                disabled={reportLoading}
+                className={`w-full mt-5 py-4 rounded-[8px] font-bold font-nato text-[14px] text-white cursor-pointer transition-colors ${reportLoading ? "bg-gray-400" : "bg-primary"
+                  }`}
+              >
+                {reportLoading ? "သွင်းနေသည်..." : content.dutySession.hygieneRecord.submitBtn}
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {/* sleep record form */}
       {showSleepForm && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-white">
-          <div className="flex justify-between items-center px-6 pt-6 pb-4">
-            <p className="font-bold font-nato text-[18px] text-primary">
-              {content.dutySession.sleepRecord.title}
-            </p>
-            <button
-              onClick={() => setShowSleepForm(false)}
-              className="text-primary text-[22px] leading-none cursor-pointer font-bold"
-            >
-              ✕
-            </button>
-          </div>
-
-          <div className="flex-1 flex flex-col px-6 pb-6 overflow-y-auto">
-            <p className="font-nato text-[13px] font-medium leading-5 text-gray-600 mb-6">
-              {content.dutySession.sleepRecord.subtitle}
-            </p>
-
-            <div className="flex flex-col gap-5">
-              {/* sleep time */}
-              <div>
-                <label className="font-nato text-[13px] font-semibold text-primary mb-2 block">
-                  {content.dutySession.sleepRecord.fields.sleepTime}
-                </label>
-                <select
-                  value={sleepTime}
-                  onChange={(e) => setSleepTime(e.target.value)}
-                  className="w-full px-4 py-3 rounded-[10px] border border-[#D9D9D9] font-nato text-[13px] text-gray-700 outline-none focus:border-primary appearance-none bg-white"
-                >
-                  <option value="" disabled>
-                    {content.dutySession.sleepRecord.fields.sleepTimePlaceholder}
-                  </option>
-                  <option value="day">နေ့ပိုင်း</option>
-                  <option value="night">ညပိုင်း</option>
-                </select>
-              </div>
-
-              {/* sleep duration */}
-              <div>
-                <label className="font-nato text-[13px] font-semibold text-primary mb-2 block">
-                  {content.dutySession.sleepRecord.fields.sleepDuration}
-                </label>
-                <input
-                  type="time"
-                  value={sleepDuration}
-                  onChange={(e) => setSleepDuration(e.target.value)}
-                  className="w-full px-4 py-3 rounded-[10px] border border-[#D9D9D9] font-nato text-[13px] text-gray-700 outline-none focus:border-primary"
-                />
-              </div>
-
-              {/* sleep period */}
-              <div>
-                <label className="font-nato text-[13px] font-semibold text-primary mb-2 block">
-                  {content.dutySession.sleepRecord.fields.sleepPeriod}
-                </label>
-                <input
-                  type="time"
-                  value={sleepPeriod}
-                  onChange={(e) => setSleepPeriod(e.target.value)}
-                  className="w-full px-4 py-3 rounded-[10px] border border-[#D9D9D9] font-nato text-[13px] text-gray-700 outline-none focus:border-primary"
-                />
-              </div>
-
-              {/* sleep dislike */}
-              <div>
-                <label className="font-nato text-[13px] font-semibold text-primary mb-3 block">
-                  {content.dutySession.sleepRecord.fields.sleepDislike}
-                </label>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setSleepDislike(true)}
-                    className={`flex-1 py-3 rounded-[10px] border font-nato text-[13px] font-medium cursor-pointer transition-colors ${
-                      sleepDislike === true
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-[#D9D9D9] text-gray-500 bg-white"
-                    }`}
-                  >
-                    {content.dutySession.sleepRecord.fields.sleepDislikeYes}
-                  </button>
-                  <button
-                    onClick={() => setSleepDislike(false)}
-                    className={`flex-1 py-3 rounded-[10px] border font-nato text-[13px] font-medium cursor-pointer transition-colors ${
-                      sleepDislike === false
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-[#D9D9D9] text-gray-500 bg-white"
-                    }`}
-                  >
-                    {content.dutySession.sleepRecord.fields.sleepDislikeNo}
-                  </button>
-                </div>
-              </div>
+        <div className="fixed inset-0 z-50 bg-white/100 flex items-center justify-center p-4 backdrop-blur-sm" >
+          <div className="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden mt-10 mx-2 border-[1px] border-[#D9D9D9]">
+            <div className="flex justify-between items-center px-6 pt-6 pb-2">
+              <p className="font-bold font-nato text-[16px] text-secondry">
+                {content.dutySession.sleepRecord.title}
+              </p>
+              <button
+                onClick={() => setShowSleepForm(false)}
+                className="text-secondry hover:text-blue-600 text-[20px] leading-none cursor-pointer font-bold"
+              >
+                ✕
+              </button>
             </div>
 
-            {reportError && (
-              <p className="text-red-500 text-[11px] font-nato font-medium text-center mt-3">
-                {reportError}
+            <div className="flex-1 flex flex-col px-6 pb-6 overflow-y-auto">
+              <p className="font-nato text-[13px] font-medium leading-5 text-gray-600 mb-6 w-[95%]">
+                {content.dutySession.sleepRecord.subtitle}
               </p>
-            )}
-            <button
-              onClick={handleSleepSubmit}
-              disabled={reportLoading}
-              className={`w-full mt-8 py-4 rounded-[8px] font-bold font-nato text-[14px] text-white cursor-pointer transition-colors ${
-                reportLoading ? "bg-gray-400" : "bg-primary"
-              }`}
-            >
-              {reportLoading ? "သွင်းနေသည်..." : content.dutySession.sleepRecord.submitBtn}
-            </button>
+
+              <div className="flex flex-col gap-5">
+                {/* sleep time */}
+                <div>
+                  <label className="font-nato text-[10px] font-semibold text-secondry mb-2 block">
+                    {content.dutySession.sleepRecord.fields.sleepTime}
+                  </label>
+                  <select
+                    value={sleepTime}
+                    onChange={(e) => setSleepTime(e.target.value)}
+                    className="w-full px-4 py-3 rounded-[10px] border border-[#D9D9D9] font-nato text-[13px] text-gray-700 outline-none focus:border-primary appearance-none bg-white"
+                  >
+                    <option value="" disabled>
+                      {content.dutySession.sleepRecord.fields.sleepTimePlaceholder}
+                    </option>
+                    <option value="day">နေ့ပိုင်း</option>
+                    <option value="night">ညပိုင်း</option>
+                  </select>
+                </div>
+
+                {/* sleep duration */}
+                <div>
+                  <label className="font-nato text-[10px] font-semibold text-secondry mb-2 block">
+                    {content.dutySession.sleepRecord.fields.sleepDuration}
+                  </label>
+                  <input
+                    type="time"
+                    value={sleepDuration}
+                    onChange={(e) => setSleepDuration(e.target.value)}
+                    className="w-full px-4 py-3 rounded-[10px] border border-[#D9D9D9] font-nato text-[13px] text-gray-700 outline-none focus:border-primary"
+                  />
+                </div>
+
+                {/* sleep period */}
+                <div>
+                  <label className="font-nato text-[10px] font-semibold text-secondry mb-2 block">
+                    {content.dutySession.sleepRecord.fields.sleepPeriod}
+                  </label>
+                  <input
+                    type="time"
+                    value={sleepPeriod}
+                    onChange={(e) => setSleepPeriod(e.target.value)}
+                    className="w-full px-4 py-3 rounded-[10px] border border-[#D9D9D9] font-nato text-[13px] text-gray-700 outline-none focus:border-primary"
+                  />
+                </div>
+
+                {/* sleep dislike */}
+                <div>
+                  <label className="font-nato text-[10px] font-semibold text-secondry mb-3 block">
+                    {content.dutySession.sleepRecord.fields.sleepDislike}
+                  </label>
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setHasActivity(true)}
+                      className={`flex-1 rounded-[10px] border font-nato text-[10px] font-semibold cursor-pointer transition-colors flex items-center justify-center gap-10 ${hasActivity === true
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-[#D9D9D9] text-[#D9D9D9] bg-white"
+                        }`}
+                    >
+                      <span
+                        className={`w-[15px] h-[15px] rounded-[3px] border-[1px] ${hasActivity === true
+                          ? "border-primary bg-primary"
+                          : "border-[#D9D9D9] bg-white"
+                          }`}
+                      ></span>
+
+                      <span>{content.dutySession.hygieneRecord.fields.activityYes}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setHasActivity(false)}
+                      className={`flex-1 h-[64px] rounded-[10px] border font-nato text-[10px] font-semibold cursor-pointer transition-colors flex items-center justify-center gap-12 ${hasActivity === false
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-[#D9D9D9] text-[#D9D9D9] bg-white"
+                        }`}
+                    >
+                      <span
+                        className={`w-[15px] h-[15px] rounded-[3px] border-[1px] ${hasActivity === false
+                          ? "border-primary bg-primary"
+                          : "border-[#D9D9D9] bg-white"
+                          }`}
+                      ></span>
+
+                      <span>{content.dutySession.hygieneRecord.fields.activityNo}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {reportError && (
+                <p className="text-red-500 text-[11px] font-nato font-medium text-center mt-3">
+                  {reportError}
+                </p>
+              )}
+              <button
+                onClick={handleSleepSubmit}
+                disabled={reportLoading}
+                className={`w-full mt-8 py-4 rounded-[8px] font-bold font-nato text-[14px] text-white cursor-pointer transition-colors ${reportLoading ? "bg-gray-400" : "bg-primary"
+                  }`}
+              >
+                {reportLoading ? "သွင်းနေသည်..." : content.dutySession.sleepRecord.submitBtn}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* nutrition record form */}
+      {showNutritionForm && (
+        <div className="fixed inset-0 z-50 bg-white/100 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden mt-10 mx-2 border-[1px] border-[#D9D9D9]">
+            <div className="flex justify-between items-center px-6 pt-6 pb-2">
+              <p className="font-bold font-nato text-[16px] text-secondry">
+                {content.dutySession.nutritionRecord.title}
+              </p>
+
+              <button
+                onClick={() => setShowNutritionForm(false)}
+                className="text-secondry hover:text-blue-600 text-[20px] leading-none cursor-pointer font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="flex-1 flex flex-col px-6 pb-6 overflow-y-auto">
+              <p className="font-nato text-[13px] font-medium leading-5 text-gray-600 mb-6 w-[95%]">
+                {content.dutySession.nutritionRecord.subtitle}
+              </p>
+
+              <div className="flex flex-col gap-5">
+                <div>
+                  <label className="font-nato text-[10px] font-semibold text-secondry mb-2 block">
+                    အချိန်
+                  </label>
+                  <input
+                    type="time"
+                    value={nutritionTime}
+                    onChange={(e) => setNutritionTime(e.target.value)}
+                    className="w-full px-4 py-3 rounded-[10px] border border-[#D9D9D9] font-nato text-[13px] text-gray-700 outline-none focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-nato text-[10px] font-semibold text-secondry mb-2 block">
+                    အာဟာရအမျိုးအစား
+                  </label>
+                  <input
+                    type="text"
+                    value={nutritionType}
+                    onChange={(e) => setNutritionType(e.target.value)}
+                    placeholder="ဥပမာ - နို့ / ထမင်း / ဆေး"
+                    className="w-full px-4 py-3 rounded-[10px] border border-[#D9D9D9] font-nato text-[13px] text-gray-700 placeholder:text-[#B3B3B380] outline-none focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-nato text-[10px] font-semibold text-secondry mb-2 block">
+                    ပမာဏ
+                  </label>
+                  <input
+                    type="text"
+                    value={nutritionAmount}
+                    onChange={(e) => setNutritionAmount(e.target.value)}
+                    placeholder="ဥပမာ - ၁ ခွက် / ၁ ပန်းကန်"
+                    className="w-full px-4 py-3 rounded-[10px] border border-[#D9D9D9] font-nato text-[13px] text-gray-700 placeholder:text-[#B3B3B380] outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              <button
+                onClick={handleNutritionSubmit}
+                disabled={reportLoading}
+                className={`w-full mt-8 py-4 rounded-[8px] font-bold font-nato text-[14px] text-white cursor-pointer transition-colors ${reportLoading ? "bg-gray-400" : "bg-primary"
+                  }`}
+              >
+                {reportLoading ? "သွင်းနေသည်..." : content.dutySession.nutritionRecord.submitBtn}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {/* exercise record form */}
+      {exerciseForm && (
+        <div className="fixed inset-0 z-50 bg-white/100 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden mt-10 mx-2 border-[1px] border-[#D9D9D9]">
+            <div className="flex justify-between items-center px-6 pt-6 pb-2">
+              <p className="font-bold font-nato text-[16px] text-secondry">
+                {content.dutySession.exerciseRecord.title}
+              </p>
+              <button
+                onClick={() => setExerciseForm(false)}
+                className="text-secondry hover:text-blue-600 text-[20px] leading-none cursor-pointer font-bold"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 flex flex-col px-6 pb-6 overflow-y-auto">
+              <p className="font-nato text-[13px] font-medium leading-5 text-gray-600 mb-6 w-[95%]">
+                {content.dutySession.exerciseRecord.subtitle}
+              </p>
+            </div>
+
+
+            <div className="flex flex-col px-6 gap-5">
+              <div className="">
+                <label className="font-nato text-[14px] font-semibold text-[#4AA3DF] mb-2 block">
+                  {content.dutySession.exerciseRecord.fields.exerciseTime}
+                </label>
+
+                <input
+                  type="time"
+                  value={exerciseTime}
+                  onChange={(e) => setExerciseTime(e.target.value)}
+                  className="w-full px-4 py-3 rounded-[10px] border border-[#D9D9D9] font-nato text-[13px] text-gray-700 outline-none focus:border-primary"
+                />
+
+
+                <div>
+                  <label className="font-nato text-[14px] font-semibold text-[#4AA3DF] mb-2 block mt-5">
+                    {content.dutySession.exerciseRecord.fields.exerciseType}
+                  </label>
+
+                  <select
+                    value={exerciseType}
+                    onChange={(e) => setExerciseType(e.target.value)}
+                    className="w-full px-4 py-3 rounded-[10px] border border-[#D9D9D9] font-nato text-[13px] text-gray-700 outline-none focus:border-primary"
+                  >
+                    <option value="" disabled>
+                      လေ့ကျင့်ခန်း အမျိုးအစားရွေးချယ်ပါ
+                    </option>
+                    <option value="walking">လမ်းလျှောက်ခြင်း</option>
+                    <option value="stretching">အကြောလျှော့ခြင်း</option>
+                    <option value="hand_movement">လက်လှုပ်ရှားခြင်း</option>
+                    <option value="leg_movement">ခြေထောက်လှုပ်ရှားခြင်း</option>
+                  </select>
+                </div>
+              </div>
+
+              {reportError && (
+                <p className="text-red-500 text-[11px] font-nato font-medium text-center mt-3">
+                  {reportError}
+                </p>
+              )}
+
+              <button
+                onClick={handleExerciseSubmit}
+                disabled={reportLoading}
+                className={`w-full mt-8 py-4 mb-5 rounded-[8px] font-bold font-nato text-[14px] text-white cursor-pointer transition-colors ${reportLoading ? "bg-gray-400" : "bg-primary"
+                  }`}
+              >
+                {reportLoading ? "သွင်းနေသည်..." : content.dutySession.exerciseRecord.submitBtn}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {/* incident record form */}
+      {incidentForm && (
+        <div className="fixed inset-0 z-50 bg-white/100 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden mt-10 mx-2 border-[1px] border-[#D9D9D9]">
+            <div className="flex justify-between items-center px-6 pt-6 pb-2">
+
+              <p className="font-bold font-nato text-[16px] leading-8 text-secondry">
+                {content.dutySession.incident.title}
+              </p>
+              <button
+                onClick={() => setIncidentForm(false)}
+                className="text-secondry hover:text-blue-600 text-[20px] leading-none cursor-pointer font-bold"
+              >
+                ✕
+              </button>
+
+            </div>
+            <div className="flex-1 flex flex-col px-6 pb-5 overflow-y-auto">
+              <p className="font-nato text-[13px] font-medium leading-5 text-gray-600 w-[95%]">
+                {content.dutySession.incident.subtitle}
+              </p>
+            </div>
+
+            <div className="flex flex-col px-6 pb-6">
+              <div>
+                <label className="font-nato text-[10px] font-semibold text-secondry mb-2 block">
+                  {content.dutySession.incident.fields.incidentNote}
+                </label>
+
+                <textarea
+                  value={incidentText}
+                  onChange={(e) => setIncidentText(e.target.value)}
+                  placeholder={content.dutySession.incident.fields.incidentNotePlaceholder}
+                  rows="6"
+                  className="w-full px-5 py-4 rounded-[8px] border border-[#D9D9D9] font-nato text-[10px] text-gray-700 placeholder:text-[#D9D9D9] outline-none focus:border-[#4AA3DF] resize-none"
+                />
+              </div>
+
+              {reportError && (
+                <p className="text-red-500 text-[11px] font-nato font-medium text-center mt-3">
+                  {reportError}
+                </p>
+              )}
+
+              <button
+                onClick={handleIncidentSubmit}
+                disabled={reportLoading}
+                className={`w-full mt-8 py-4 mb-5 rounded-[8px] font-bold font-nato text-[14px] text-white cursor-pointer transition-colors ${reportLoading ? "bg-gray-400" : "bg-primary"
+                  }`}
+              >
+                {reportLoading ? "သွင်းနေသည်..." : content.dutySession.incident.submitBtn}
+              </button>
+            </div>
           </div>
         </div>
       )}

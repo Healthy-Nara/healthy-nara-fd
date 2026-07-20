@@ -27,7 +27,7 @@ export const content = {
     recordPopup: {
       title: "Record အမျိုးအစားရွေးပါ",
       subtitle:
-        "ကလေးငယ် ပြုစုစောင့်ရှောက်မှုနဲ့ ပက်သတ်ပြီး သက်ဆိုင်ရာ စောင့်ရှောက်မှု အလိုက် record သွင်းနိုင်ပါတယ်",
+        "ကလေးငယ် ပြုစုစောင့်ရှောက်မှုနဲ့ ပက်သတ်ပြီး သက်ဆိုင်ရာ စောင့်ရှောက်မှု အလိုက် record  သွင်းနိုင်ပါတယ်",
       options: [
         { id: 1, label: "တစ်ကိုယ်ရည် သန့်ရှင်းရေး" },
         { id: 2, label: "ကလေးအိပ်စက်ချိန်" },
@@ -71,7 +71,7 @@ export const content = {
         sleepDislikeYes: "မှန်တယ်",
         sleepDislikeNo: "မမှန်",
       },
-      submitBtn: "Record ထည့်မယ်",
+      submitBtn: "Record စာရင်းသွင်းမယ်",
     },
     recordLog: {
       hygieneTitle: "တစ်ကိုယ်ရေ သန့်ရှင်းရေး",
@@ -90,6 +90,47 @@ export const content = {
       abnormalityTitle: "ထူးခြားဖြစ်စဉ်",
       noRecord: "မှတ်တမ်းမရှိသေးပါ",
     },
+    nutritionRecord: {
+      title: "အာဟာရတိုက်ကျွေးခြင်း",
+      subtitle:
+        "ကလေးငယ် ပြုစုစောင့်ရှောက်မှု Record သွင်းတဲ့ အချိန်မှာ အချိန်တိတိကျကျနဲ့ Recordထည့်ပေးပါ။",
+      fields: {
+        nutritionTime: "အာဟာရတိုက်ကျွေးချိန်",
+        nutritionTimePlaceholder: "အချိန်‌ထည့်မယ်",
+        nutritionType: "အာဟာရအမျိုးအစား",
+        nutritionTypePlaceholder: "အာဟာရအမျိုးအစားရွေးချယ်ပါ",
+        nutritionAmount: "ပမာဏ",
+        nutritionAmountPlaceholder: "ပမာဏထည့်မယ်",
+        nutritionDislike: "အာဟာရတိုက်ကျွေးချိန် မှန်မမှန်",
+        nutritionDislikeYes: "မှန်တယ်",
+        nutritionDislikeNo: "မမှန်",
+      },
+      submitBtn: "Record စာရင်းသွင်းမယ်",
+    },
+    exerciseRecord: {
+      title: "ကိုယ်လက်လေ့ကျင့်ခန်း",
+      subtitle: "ကလေးငယ် ပြုစုစောင့်ရှောက်မှု Record သွင်းတဲ့ အချိန်မှာ အချိန်တိတိကျကျနဲ့ Recordထည့်ပေးပါ။",
+      fields: {
+        exerciseTime: "လေ့ကျင့်ခန်းလုပ်ပေးတဲ့ အချိန်",
+        exerciseTimePlaceholder: "အချိန်ထည့်မယ်",
+        exerciseType: "လေ့ကျင့်ခန်းအမျိုးအစား",
+        exerciseTypePlaceholder: "လေ့ကျင့်ခန်းအမျိုးအစားရွေးချယ်ပါ",
+        exerciseNote: "လေ့ကျင့်ခန်းလုပ်ပေးတဲ့ မှတ်ချက်",
+        exerciseNotePlaceholder: "မှတ်ချက်ထည့်မယ်",
+      },
+      submitBtn: "Record စာရင်းသွင်းမယ်",
+    },
+    incident: {
+      title: "ထူးခြားဖြစ်စဉ်မှတ်တမ်း",
+      subtitle: "ကလေးငယ် ပြုစုစောင့်ရှောက်ရာတွင် မူမမှန်တဲ့ ထူးခြားဖြစ်စဉ် တစ်စုံတစ်ရာတွေ့ရပါက ချက်ချင်း Record သွင်းပေးပါ ။ ",
+      fields: {
+        incidentNote: "ထူးခြားဖြစ်စဉ် အကြောင်း အပြည့်အစုံ",
+        incidentNotePlaceholder: "သတိထားမိသမျှ ထူးခြားဖြစ်စဉ်အကြောင်း အပြည်အစုံ ရေးပေးပါ",
+      },
+      submitBtn: "Record စာရင်းသွင်းမယ်",
+    }
+
+
   },
   nonDutySession: {
     popupTitle: "Assigned ချထားတဲ့ Duty မရှိသေးပါ",
