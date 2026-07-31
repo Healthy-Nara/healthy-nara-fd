@@ -14,7 +14,7 @@ function App() {
   const router = createBrowserRouter([
     {
       path: "/",
-      element: localStorage.getItem("nara_token") ? (
+      element: localStorage.getItem("token") ? (
         <Navigate to="/home" replace />
       ) : (
         <Navigate to="/login" replace />

@@ -27,7 +27,7 @@ function Login() {
     try {
       const data = await loginUser(username, password);
 
-      localStorage.setItem("nara_token", data.token);
+      localStorage.setItem("token", data.token);
       navigate("/home");
     } catch (err) {
       const message =
