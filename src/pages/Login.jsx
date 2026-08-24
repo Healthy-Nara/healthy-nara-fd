@@ -2,6 +2,13 @@ import { useState } from "react";
 import { content } from "../data/data";
 import { loginUser } from "../services/authService";
 import { useNavigate } from "react-router";
+import { AnimatePresence, motion } from "motion/react";
+import {
+  popIn,
+  springSnappy,
+  shakeX,
+  tapScale,
+} from "../lib/animations";
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -42,18 +49,28 @@ function Login() {
 
   return (
     <div>
-      <div className="fixed inset-0">
+      <motion.div
+        className="fixed inset-0"
+        initial={{ scale: 1.08 }}
+        animate={{ scale: 1 }}
+        transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
+      >
         <img
           className="h-screen w-full object-cover"
           src={content.login.background}
           alt="background"
         />
-      </div>
+      </motion.div>
 
-      <div className="relative z-10 bg-white w-[90%] mt-10 mx-auto rounded-[12px] border-[0.1px] border-[#D9D9D9] px-4 py-7">
-        <div>
+      <motion.div
+        className="relative z-10 bg-white w-[90%] mt-10 mx-auto rounded-[12px] border-[0.1px] border-[#D9D9D9] px-4 py-7"
+        initial={{ opacity: 0, y: 48 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 260, damping: 26, delay: 0.15 }}
+      >
+        <motion.div variants={popIn} initial="hidden" animate="show">
           <img src={content.login.logo} alt="" className="w-[100px] h-[56px]" />
-        </div>
+        </motion.div>
 
         <div className="mt-4">
           <h2 className="mt-3 text-secondry text-[16px] font-nato font-bold">
@@ -66,7 +83,12 @@ function Login() {
 
         <div className="mt-10">
           <form className="flex flex-col gap-7">
-            <div className="flex flex-col gap-2">
+            <motion.div
+              className="flex flex-col gap-2"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            >
               <label className="text-secondry text-[10px] font-semibold font-nato">
                 {content.login.nameLabel}
               </label>
@@ -80,13 +102,18 @@ function Login() {
                 }}
                 type="text"
                 placeholder="Nurse Aid နာမည်ထည့်ပါ"
-                className={`p-4 outline-none border rounded-[6px] font-semibold text-[12px] font-nato ${
+                className={`p-4 outline-none border rounded-[6px] font-semibold text-[12px] font-nato transition-all duration-200 focus:border-secondry focus:shadow-[0_0_0_3px_rgba(72,160,216,0.15)] ${
                   error ? "border-red-500" : "border-[#D9D9D9]"
                 }`}
               />
-            </div>
+            </motion.div>
 
-            <div className="flex flex-col gap-2">
+            <motion.div
+              className="flex flex-col gap-2"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            >
               <label className="text-secondry text-[10px] font-semibold font-nato">
                 {content.login.NRCLabel}
               </label>
@@ -102,7 +129,7 @@ function Login() {
                   type={showPassword ? "text" : "password"}
                   inputMode="numeric"
                   placeholder="NRC နံပါတ် ဂဏန်းများ ထည့်ပါ"
-                  className={`p-4 pr-12 outline-none border rounded-[6px] font-semibold text-[12px] font-nato w-full ${
+                  className={`p-4 pr-12 outline-none border rounded-[6px] font-semibold text-[12px] font-nato w-full transition-all duration-200 focus:border-secondry focus:shadow-[0_0_0_3px_rgba(72,160,216,0.15)] ${
                     error ? "border-red-500" : "border-[#D9D9D9]"
                   }`}
                 />
@@ -110,7 +137,7 @@ function Login() {
                 <button
                   type="button"
                   onClick={handleShowPassword}
-                  className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-secondry"
+                  className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-secondry active:scale-90 transition-transform"
                 >
                   {showPassword ? (
                     <svg
@@ -154,28 +181,55 @@ function Login() {
                 </button>
               </div>
 
-              {error && (
-                                <p className="text-red-500 text-[11px] font-nato font-medium">
-                                    {error}
-                                </p>
-                            )}
-            </div>
+              <AnimatePresence mode="wait">
+                {error && (
+                  <motion.p
+                    key={error}
+                    variants={shakeX}
+                    initial="hidden"
+                    animate="show"
+                    exit="exit"
+                    className="text-red-500 text-[11px] font-nato font-medium"
+                  >
+                    {error}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </motion.div>
           </form>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="absolute bg-white w-full mx-auto left-0 right-0 z-10 bottom-0 border-[0.1px] border-[#D9D9D9] p-4 text-center">
-        <button
+      <motion.div
+        className="fixed bg-white w-full mx-auto left-0 right-0 z-10 bottom-0 border-[0.1px] border-[#D9D9D9] p-4 text-center"
+        initial={{ opacity: 0, y: 80 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 240, damping: 26, delay: 0.55 }}
+      >
+        <motion.button
           type="button"
           onClick={login}
           disabled={loading}
+          whileTap={loading ? undefined : tapScale}
+          transition={springSnappy}
           className={`w-full px-16 py-4 text-white rounded-[8px] font-bold font-nato text-[12px] cursor-pointer ${
-            loading ? "bg-gray-400" : "bg-primary"
+            loading ? "bg-gray-400" : "bg-primary shadow-lg shadow-primary/25"
           }`}
         >
-          {loading ? "အကောင့်ထဲဝင်နေသည်..." : content.footer.loginBtn}
-        </button>
-      </div>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.span
+              key={loading ? "loading" : "idle"}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.15 }}
+              className="inline-block"
+            >
+              {loading ? "အကောင့်ထဲဝင်နေသည်..." : content.footer.loginBtn}
+            </motion.span>
+          </AnimatePresence>
+        </motion.button>
+      </motion.div>
     </div>
   );
 }

@@ -10,7 +10,11 @@ export const updateReport = async (reportId, payload) => {
   return response.data;
 };
 
-export const getReports = async (date) => {
-  const response = await api.get(`/na/reports?date=${date}`);
+export const getReports = async (date, bookingId) => {
+  let url = `/na/reports?date=${date}`;
+  if (bookingId) {
+    url += `&bookingId=${bookingId}`;
+  }
+  const response = await api.get(url);
   return response.data.data;
 };
