@@ -1,47 +1,75 @@
-import { content } from "../../data/data"
-import { motion } from "motion/react"
-import { modalBackdrop, modalPanelCenter, easeOutExpo } from "../../lib/animations"
+import { useState } from "react";
+import { content } from "../../data/data";
+import { motion, AnimatePresence } from "motion/react";
+import { modalPanelCenter, easeOutExpo } from "../../lib/animations";
+import Nav from "../Nav";
+import RecordHistoryView from "./RecordHistoryView";
 
 function NonDutySession() {
-    return (
-        <div>
-            <div className="fixed inset-0">
-                <motion.img
-                    className="h-screen w-full object-cover"
-                    src={content.login.background}
-                    alt="background"
-                    initial={{ scale: 1.08 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 1.4, ease: easeOutExpo }}
-                />
-            </div>
+  const [showHistory, setShowHistory] = useState(false);
 
-            <motion.div
-                variants={modalBackdrop}
-                initial="hidden"
-                animate="show"
-                className="fixed inset-0 z-50 flex items-center justify-center px-4"
-            >
-                <motion.div
-                    variants={modalPanelCenter}
-                    className="w-full max-w-[370px] rounded-[12px] bg-white p-5 border border-[#D9D9D9]"
-                >
-                    <div className="flex justify-center">
-                        <img src={content.dutySession.popupImg} alt="" className="w-full" />
-                    </div>
-                    <div className="mt-7">
-                        <p className="font-bold font-nato text-[16px] text-secondry">{content.nonDutySession.popupTitle}</p>
-                        <p className="mt-2 font-nato text-[12px] font-medium leading-5">
-                            {content.nonDutySession.popupSub}
-                        </p>
-                    </div>
-                    <div className="absolute bg-white w-full mx-auto left-0 right-0 z-10 bottom-0 border-[0.1px] border-[#D9D9D9] p-4 text-center">
-                        <button className='bg-gray-400 w-full px-16 py-4 text-gray-300 rounded-[8px] font-bold font-nato text-[12px]'>{content.footer.loginBtn}</button>
-                    </div>
-                </motion.div>
-            </motion.div>
-        </div>
-    )
+  return (
+    <div className="relative min-h-screen flex flex-col justify-between overflow-x-hidden">
+      {/* Background Pattern */}
+      <div className="fixed inset-0 pointer-events-none -z-10">
+        <motion.img
+          className="h-full w-full object-cover opacity-90"
+          src={content.login.background}
+          alt="background"
+          initial={{ scale: 1.05 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 1.2, ease: easeOutExpo }}
+        />
+      </div>
+
+      {/* Top Navigation */}
+      <div className="w-full px-5 pt-4 z-20">
+        <Nav onViewRecords={() => setShowHistory(true)} />
+      </div>
+
+      {/* Main Center Card */}
+      <div className="flex-1 flex items-center justify-center px-5 py-6 z-10">
+        <motion.div
+          variants={modalPanelCenter}
+          initial="hidden"
+          animate="show"
+          className="w-full max-w-[370px] bg-white rounded-[20px] p-5 sm:p-6 border border-[#D9D9D9] shadow-sm flex flex-col items-center"
+        >
+          {/* Title */}
+          <h2 className="font-bold font-nato text-[22px] text-gray-950 text-center tracking-tight mb-3">
+            {content.nonDutySession.popupTitle}
+          </h2>
+
+          {/* Subtitle */}
+          <p className="font-nato text-[14px] text-[#4a494e] font-medium text-center leading-[1.7] whitespace-pre-line mb-5">
+            {content.nonDutySession.popupSub}
+          </p>
+
+          {/* Nurse with Clipboard Image */}
+          <div className="w-full overflow-hidden rounded-[14px] bg-[#f8fafc] flex justify-center">
+            <img
+              src={content.nonDutySession.img || "/images/noduty.png"}
+              alt={content.nonDutySession.popupTitle}
+              className="w-full h-auto object-cover rounded-[14px]"
+            />
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Bottom spacer for balance */}
+      <div className="h-4 z-0 pointer-events-none" />
+
+      {/* Record History View Overlay */}
+      <AnimatePresence>
+        {showHistory && (
+          <RecordHistoryView
+            onClose={() => setShowHistory(false)}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
 
-export default NonDutySession
+export default NonDutySession;
+

@@ -18,3 +18,12 @@ export const getReports = async (date, bookingId) => {
   const response = await api.get(url);
   return response.data.data;
 };
+
+export const getAllReports = async (bookingId) => {
+  let url = `/na/reports`;
+  if (bookingId) {
+    url += `?bookingId=${bookingId}`;
+  }
+  const response = await api.get(url);
+  return response.data.data;
+};

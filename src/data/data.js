@@ -16,9 +16,9 @@ export const content = {
     dutyin: "Duty စဝင်မယ်",
     dutyInBtn: "ဒီကိုနှိပ်ပါ",
     dutyout: "Duty ထွက်မယ်",
-    dutyOutBtn: "မလုပ်ရသေးပါ",
-    popupImg: "/images/popup.png",
-    popupTitle: "Duty စဖို့ Check In ဝင်မယ်",
+    dutyOutBtn: "ဒီကိုနှိပ်ပါ",
+    popupImg: "/images/duty.png",
+    popupTitle: "Duty စဝင်မယ်",
     popupSub:
       "Assign ချထားတဲ့ Duty စတင်ဖို့အတွက် Duty Check In ဝင်ဖို့ အဆင်အသင့်ဖြစ်ပါပြီ",
     pupupBtn: "Duty Check In ဝင်မယ်",
@@ -133,8 +133,10 @@ export const content = {
 
   },
   nonDutySession: {
-    popupTitle: "Assigned ချထားတဲ့ Duty မရှိသေးပါ",
+    popupTitle: "Duty မရှိသေးပါ",
     popupSub:
-      "Healthy Nara Team ဘက်ကနေ Duty Assigned ထည့်ပေးဖို့ အကောင်းဆုံး ကြိုးစားနေပါတယ်",
+      "သင့်နှင့်ကိုက်ညီသော Duty\nတွေ့ရှိပါက Healthy Nara မှ\nချက်ချင်း ဆက်သွယ်ပေးပါမယ်",
+    img: "/images/noduty.png",
+    recordBtn: "မှတ်တမ်း တွေကြည့်မယ်",
   },
 };
