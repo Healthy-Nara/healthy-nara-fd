@@ -161,6 +161,7 @@ function DutySession({ dutyData, activeDuty }) {
   const [exerciseForm, setExerciseForm] = useState(false);
   const [incidentForm, setIncidentForm] = useState(false);
   const [showViewRecordsModal, setShowViewRecordsModal] = useState(false);
+  const [showDutyOutModal, setShowDutyOutModal] = useState(false);
 
   const [recordTime, setRecordTime] = useState("");
   const [recordDesc, setRecordDesc] = useState("");
@@ -350,7 +351,7 @@ function DutySession({ dutyData, activeDuty }) {
           </motion.div>
           <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-md border-t border-gray-200 z-30 flex flex-col items-center">
             <div className="w-full px-1">
-              <motion.button whileTap={!finishLoading ? tapScale : undefined} transition={springSnappy} onClick={handleDutyFinish} disabled={finishLoading} className="w-full bg-[#1cb89b] text-white p-3 rounded-[12px] flex items-center justify-between cursor-pointer shadow-lg shadow-primary/25 hover:bg-[#18a48a] transition-all">
+              <motion.button whileTap={tapScale} transition={springSnappy} onClick={() => setShowDutyOutModal(true)} className="w-full bg-[#1cb89b] text-white p-3 rounded-[12px] flex items-center justify-between cursor-pointer shadow-lg shadow-primary/25 hover:bg-[#18a48a] transition-all">
                 <div className="w-10 h-10 rounded-[8px] bg-white text-[#1cb89b] flex items-center justify-center shrink-0">
                   <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -359,11 +360,10 @@ function DutySession({ dutyData, activeDuty }) {
                   </svg>
                 </div>
                 <div className="flex flex-col text-right font-nato pr-1">
-                  <p className="font-bold text-[15px] leading-tight">{finishLoading ? "Duty ထွက်နေသည်..." : "Duty ထွက်မယ်"}</p>
+                  <p className="font-bold text-[15px] leading-tight">Duty ထွက်မယ်</p>
                   <p className="font-medium text-[11px] opacity-90">ဒီကိုနှိပ်ပါ</p>
                 </div>
               </motion.button>
-              {finishError && <p className="text-red-500 text-[11px] font-nato font-medium text-center mt-2">{finishError}</p>}
             </div>
           </div>
         </div>
@@ -409,6 +409,101 @@ function DutySession({ dutyData, activeDuty }) {
             onClose={() => setIncidentForm(false)}
             onSubmit={handleRecordCreate}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Duty Out Confirmation Modal */}
+      <AnimatePresence>
+        {showDutyOutModal && (
+          <motion.div
+            key="duty-out-confirm-modal"
+            variants={modalBackdrop}
+            initial="hidden"
+            animate="show"
+            exit="exit"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs font-nato"
+            onClick={() => setShowDutyOutModal(false)}
+          >
+            <motion.div
+              variants={modalPanelCenter}
+              initial="hidden"
+              animate="show"
+              exit="exit"
+              transition={springSnappy}
+              className="bg-white rounded-[24px] p-6 max-w-[360px] w-full border border-gray-100 shadow-2xl flex flex-col items-center relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={() => setShowDutyOutModal(false)}
+                className="absolute top-4 right-4 w-7 h-7 rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 flex items-center justify-center transition-colors cursor-pointer text-xs font-bold"
+              >
+                ✕
+              </button>
+
+              {/* Title */}
+              <h2 className="text-[20px] font-bold text-gray-900 text-center mb-1.5 mt-1">
+                Duty ကနေထွက်မယ်
+              </h2>
+
+              {/* Subtitle */}
+              <div className="text-[13.5px] text-gray-600 text-center leading-relaxed mb-4 px-2">
+                <p>Healthy Nara Team ဘက်ကနေ</p>
+                <p>Assigned ချထားတဲ့ Duty ချိန်ပြီးလို့</p>
+                <p>Duty ထွက်ဖို့ သေချာပါပြီ</p>
+              </div>
+
+              {/* Nurse Goodbye Image */}
+              <div className="w-full rounded-[16px] overflow-hidden bg-gray-50 border border-gray-100 mb-5 shadow-xs flex items-center justify-center">
+                <img
+                  src="/images/dutyout.png"
+                  alt="Duty Out"
+                  className="w-full h-auto object-cover max-h-[220px]"
+                />
+              </div>
+
+              {/* Finish Error message if any */}
+              {finishError && (
+                <p className="text-red-500 text-[12px] font-medium text-center mb-3 w-full bg-red-50 p-2 rounded-lg border border-red-100">
+                  {finishError}
+                </p>
+              )}
+
+              {/* Green Confirm Duty Out Button */}
+              <motion.button
+                whileTap={!finishLoading ? tapScale : undefined}
+                transition={springSnappy}
+                onClick={handleDutyFinish}
+                disabled={finishLoading}
+                className="w-full bg-[#1cb89b] text-white p-3 rounded-[12px] flex items-center justify-between cursor-pointer shadow-lg shadow-primary/20 hover:bg-[#18a48a] transition-all"
+              >
+                <div className="w-10 h-10 rounded-[8px] bg-white text-[#1cb89b] flex items-center justify-center shrink-0 shadow-2xs">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                </div>
+                <div className="flex flex-col text-right font-nato pr-1">
+                  <p className="font-bold text-[15px] leading-tight">
+                    {finishLoading ? "Duty ထွက်နေသည်..." : "Duty ထွက်မယ်"}
+                  </p>
+                  <p className="font-medium text-[11px] opacity-90">ဒီကိုနှိပ်ပါ</p>
+                </div>
+              </motion.button>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 
