@@ -63,7 +63,7 @@ function Login() {
       </motion.div>
 
       <motion.div
-        className="relative z-10 bg-white w-[90%] mt-10 mx-auto rounded-[12px] border-[0.1px] border-[#D9D9D9] px-4 py-7"
+        className="relative z-10 bg-white w-[90%] my-10 mx-auto rounded-[12px] border-[0.1px] border-[#D9D9D9] px-4 py-7"
         initial={{ opacity: 0, y: 48 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: "spring", stiffness: 260, damping: 26, delay: 0.15 }}
@@ -196,39 +196,38 @@ function Login() {
                 )}
               </AnimatePresence>
             </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.55, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <motion.button
+                type="submit"
+                onClick={login}
+                disabled={loading}
+                whileTap={loading ? undefined : tapScale}
+                transition={springSnappy}
+                className={`w-full py-4 text-white rounded-[8px] font-bold font-nato text-[12px] cursor-pointer transition-all ${
+                  loading ? "bg-gray-400" : "bg-primary shadow-lg shadow-primary/25"
+                }`}
+              >
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.span
+                    key={loading ? "loading" : "idle"}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.15 }}
+                    className="inline-block"
+                  >
+                    {loading ? "အကောင့်ထဲဝင်နေသည်..." : content.footer.loginBtn}
+                  </motion.span>
+                </AnimatePresence>
+              </motion.button>
+            </motion.div>
           </form>
         </div>
-      </motion.div>
-
-      <motion.div
-        className="fixed bg-white w-full mx-auto left-0 right-0 z-10 bottom-0 border-[0.1px] border-[#D9D9D9] p-4 text-center"
-        initial={{ opacity: 0, y: 80 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ type: "spring", stiffness: 240, damping: 26, delay: 0.55 }}
-      >
-        <motion.button
-          type="button"
-          onClick={login}
-          disabled={loading}
-          whileTap={loading ? undefined : tapScale}
-          transition={springSnappy}
-          className={`w-full px-16 py-4 text-white rounded-[8px] font-bold font-nato text-[12px] cursor-pointer ${
-            loading ? "bg-gray-400" : "bg-primary shadow-lg shadow-primary/25"
-          }`}
-        >
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.span
-              key={loading ? "loading" : "idle"}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.15 }}
-              className="inline-block"
-            >
-              {loading ? "အကောင့်ထဲဝင်နေသည်..." : content.footer.loginBtn}
-            </motion.span>
-          </AnimatePresence>
-        </motion.button>
       </motion.div>
     </div>
   );
